@@ -1,21 +1,70 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type Fahrer = {
   fahrer_id: number
   name: string
-  typ: string
-  stundenlohn: number
+  token: string
+}
+
+type Auftrag = {
+  id: number
+  titel: string
+  datum: string
+  start_lat: number
+  start_lng: number
 }
 
 export default function Home() {
 
+  /* ================= STATES ================= */
+
   const [fahrerId, setFahrerId] = useState("")
   const [pin, setPin] = useState("")
   const [fahrer, setFahrer] = useState<Fahrer | null>(null)
+
+  const [auftraege, setAuftraege] = useState<Auftrag[]>([])
+  const [aktivAuftrag, setAktivAuftrag] = useState<Auftrag | null>(null)
+
+  const [startZeit, setStartZeit] = useState<number | null>(null)
+  const [laufzeit, setLaufzeit] = useState(0)
+
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const RADIUS_KM = 5
+
+  /* ================= TIMER ================= */
+
+  useEffect(() => {
+
+    if (!startZeit) return
+
+    const interval = setInterval(() => {
+      setLaufzeit(Math.floor((Date.now() - startZeit) / 1000))
+    }, 1000)
+
+    return () => clearInterval(interval)
+
+  }, [startZeit])
+
+  /* ================= DISTANZ ================= */
+
+  function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+  }
+
+  /* ================= LOGIN ================= */
 
   async function login() {
 
@@ -23,27 +72,37 @@ export default function Home() {
     setLoading(true)
 
     try {
+
       const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fahrer_id: Number(fahrerId),
           pin: pin
         })
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        setError("Fahrer-ID oder PIN falsch oder nicht freigeschaltet")
+        setError(data.error || "Login fehlgeschlagen")
         setLoading(false)
         return
       }
 
-      const data = await res.json()
       setFahrer(data)
 
-    } catch (err) {
+      // Aufträge mit Token laden
+      const a = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftraege", {
+        headers: {
+          Authorization: `Bearer ${data.token}`
+        }
+      })
+
+      const auftragData = await a.json()
+      setAuftraege(auftragData)
+
+    } catch {
       setError("Server nicht erreichbar")
     }
 
@@ -52,20 +111,62 @@ export default function Home() {
 
   function logout() {
     setFahrer(null)
-    setFahrerId("")
-    setPin("")
+    setAuftraege([])
+    setAktivAuftrag(null)
+    setStartZeit(null)
+    setLaufzeit(0)
+  }
+
+  /* ================= START ================= */
+
+  function startAuftrag(a: Auftrag) {
+
+    if (!navigator.geolocation) {
+      alert("GPS nicht verfügbar")
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+
+      const dist = distance(
+        position.coords.latitude,
+        position.coords.longitude,
+        a.start_lat,
+        a.start_lng
+      )
+
+      if (dist > RADIUS_KM) {
+        alert("Nicht im erlaubten Radius (5km)")
+        return
+      }
+
+      setAktivAuftrag(a)
+      setStartZeit(Date.now())
+    })
+  }
+
+  /* ================= STOP ================= */
+
+  function stopAuftrag() {
+
+    if (!aktivAuftrag || !startZeit) return
+
+    alert("Auftrag beendet ✔")
+
+    setAktivAuftrag(null)
+    setStartZeit(null)
+    setLaufzeit(0)
   }
 
   /* ================= LOGIN VIEW ================= */
 
   if (!fahrer) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-900">
-
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow w-full max-w-sm">
 
           <h1 className="text-2xl font-bold text-center mb-6">
-            Druckfutzi Fahrer Login
+            Fahrer Login
           </h1>
 
           <input
@@ -85,15 +186,13 @@ export default function Home() {
           />
 
           {error && (
-            <p className="text-red-600 text-sm mb-4">
-              {error}
-            </p>
+            <p className="text-red-600 text-sm mb-4">{error}</p>
           )}
 
           <button
             onClick={login}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg"
           >
             {loading ? "Prüfe..." : "Login"}
           </button>
@@ -106,15 +205,14 @@ export default function Home() {
   /* ================= DASHBOARD ================= */
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100 text-gray-900">
+    <div className="min-h-screen p-8 bg-gray-100">
 
       <div className="max-w-3xl mx-auto">
 
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold">
+        <div className="flex justify-between mb-8">
+          <h2 className="text-xl font-bold">
             Willkommen {fahrer.name}
           </h2>
-
           <button
             onClick={logout}
             className="bg-red-500 text-white px-4 py-2 rounded-lg"
@@ -123,22 +221,39 @@ export default function Home() {
           </button>
         </div>
 
+        {aktivAuftrag && (
+          <div className="bg-green-100 p-4 mb-6 rounded-xl">
+            <p><strong>Aktiver Auftrag:</strong> {aktivAuftrag.titel}</p>
+            <p>Laufzeit: {Math.floor(laufzeit / 60)} Minuten</p>
+            <button
+              onClick={stopAuftrag}
+              className="bg-red-600 text-white px-4 py-2 mt-3 rounded-lg"
+            >
+              Stoppen
+            </button>
+          </div>
+        )}
+
         <div className="bg-white p-6 rounded-xl shadow">
+          <h3 className="text-lg font-bold mb-4">Meine Aufträge</h3>
 
-          <p className="mb-2">
-            <strong>Fahrer-ID:</strong> {fahrer.fahrer_id}
-          </p>
+          {auftraege.length === 0 && <p>Keine Aufträge</p>}
 
-          <p className="mb-2">
-            <strong>Typ:</strong> {fahrer.typ}
-          </p>
+          {auftraege.map(a => (
+            <div key={a.id} className="border p-3 mb-3 rounded-lg">
+              <p><strong>{a.titel}</strong></p>
+              <p>{a.datum}</p>
 
-          <p>
-            <strong>Stundenlohn:</strong>{" "}
-            {fahrer.typ === "selbststaendig"
-              ? "—"
-              : `${fahrer.stundenlohn} €`}
-          </p>
+              {!aktivAuftrag && (
+                <button
+                  onClick={() => startAuftrag(a)}
+                  className="bg-blue-600 text-white px-4 py-2 mt-2 rounded-lg"
+                >
+                  Auftrag starten
+                </button>
+              )}
+            </div>
+          ))}
 
         </div>
 
