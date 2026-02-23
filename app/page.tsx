@@ -36,7 +36,7 @@ export default function Home() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [view, setView] = useState<"dashboard" | "kapazitaet">("dashboard")
-const [weekIndex, setWeekIndex] = useState(0)
+
 const [plan, setPlan] = useState({
   mo: "",
   di: "",
@@ -307,16 +307,6 @@ function getISOWeek(date: Date) {
   return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000
            - 3 + ((week1.getDay() + 6) % 7)) / 7)
 }
-if (view === "kapazitaet") {
-
-  const getISOWeek = (date: Date) => {
-    const tmp = new Date(date.getTime())
-    tmp.setHours(0,0,0,0)
-    tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7))
-    const week1 = new Date(tmp.getFullYear(),0,4)
-    return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000
-      - 3 + ((week1.getDay() + 6) % 7)) / 7)
-  }
 
   const now = new Date()
   const kw = getISOWeek(new Date(now.getTime() + weekIndex * 7 * 24 * 60 * 60 * 1000))
