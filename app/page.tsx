@@ -35,6 +35,17 @@ export default function Home() {
 
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [view, setView] = useState<"dashboard" | "kapazitaet">("dashboard")
+const [weekIndex, setWeekIndex] = useState(0)
+const [plan, setPlan] = useState({
+  mo: "",
+  di: "",
+  mi: "",
+  do: "",
+  fr: "",
+  sa: "",
+  so: ""
+})
 
   const RADIUS_KM = 5
 
@@ -296,6 +307,86 @@ function getISOWeek(date: Date) {
   return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000
            - 3 + ((week1.getDay() + 6) % 7)) / 7)
 }
+if (view === "kapazitaet") {
+
+  const getISOWeek = (date: Date) => {
+    const tmp = new Date(date.getTime())
+    tmp.setHours(0,0,0,0)
+    tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7))
+    const week1 = new Date(tmp.getFullYear(),0,4)
+    return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000
+      - 3 + ((week1.getDay() + 6) % 7)) / 7)
+  }
+
+  const now = new Date()
+  const kw = getISOWeek(new Date(now.getTime() + weekIndex * 7 * 24 * 60 * 60 * 1000))
+  const jahr = now.getFullYear()
+
+  async function speichern() {
+
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${fahrer?.token}`
+      },
+      body: JSON.stringify({
+        kw,
+        jahr,
+        plan
+      })
+    })
+
+    alert("Gespeichert ✔")
+  }
+
+  return (
+    <div className="min-h-screen p-8 bg-gray-100">
+      <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+
+        <h2 className="text-xl font-bold mb-4">
+          Verfügbarkeit KW {kw}
+        </h2>
+
+        {Object.keys(plan).map((tag) => (
+          <input
+            key={tag}
+            placeholder={tag.toUpperCase()}
+            value={(plan as any)[tag]}
+            onChange={(e) =>
+              setPlan({ ...plan, [tag]: e.target.value })
+            }
+            className="w-full mb-3 p-2 border rounded"
+          />
+        ))}
+
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={() => setWeekIndex((weekIndex+1)%4)}
+            className="bg-gray-500 text-white px-3 py-2 rounded"
+          >
+            Nächste Woche
+          </button>
+
+          <button
+            onClick={speichern}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Speichern
+          </button>
+        </div>
+
+        <button
+          onClick={() => setView("dashboard")}
+          className="mt-4 text-blue-600"
+        >
+          Zurück
+        </button>
+
+      </div>
+    </div>
+  )
+}
   /* ================= DASHBOARD ================= */
 
   return (
@@ -322,6 +413,12 @@ function getISOWeek(date: Date) {
           >
             Logout
           </button>
+<button
+  onClick={() => setView("kapazitaet")}
+  className="bg-green-600 text-white px-4 py-2 rounded-lg ml-2"
+>
+  Verfügbarkeit
+</button>
         </div>
 
         {aktivAuftrag && (
