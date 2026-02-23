@@ -258,11 +258,12 @@ async function stopAuftrag() {
     Willkommen {fahrer.name}
   </h2>
   <p className="text-sm text-gray-600">
-    Typ: {fahrer.typ}
-  </p>
-  <p className="text-sm text-gray-600">
-    Geleistete Stunden: {fahrer.stunden} h
-  </p>
+  Typ: {fahrer.typ || "Nicht gesetzt"}
+</p>
+
+<p className="text-sm text-gray-600">
+  Geleistete Stunden: {fahrer.stunden ?? 0} h
+</p>
 </div>
           <button
             onClick={logout}
