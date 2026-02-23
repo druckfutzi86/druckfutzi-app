@@ -9,7 +9,6 @@ type Fahrer = {
   stunden: number
   token: string
 }
-}
 
 type Auftrag = {
   id: number
