@@ -22,10 +22,11 @@ export default function Home() {
 
   /* ================= STATES ================= */
 
+  const [overrideGrund, setOverrideGrund] = useState("")
   const [fahrerId, setFahrerId] = useState("")
   const [pin, setPin] = useState("")
   const [fahrer, setFahrer] = useState<Fahrer | null>(null)
-
+  const [weekIndex, setWeekIndex] = useState(0) // 0–3
   const [auftraege, setAuftraege] = useState<Auftrag[]>([])
   const [aktivAuftrag, setAktivAuftrag] = useState<Auftrag | null>(null)
 
@@ -145,12 +146,18 @@ async function startAuftrag(a: Auftrag) {
       a.start_lng
     )
 
+    let grund = ""
+
     if (dist > RADIUS_KM) {
-      alert("Nicht im erlaubten Radius (5km)")
-      return
+
+      grund = prompt("Du bist außerhalb des 5km Radius.\nBitte Grund eingeben:") || ""
+
+      if (!grund) {
+        alert("Auftrag nicht gestartet – kein Grund angegeben.")
+        return
+      }
     }
 
-    // 🔥 API CALL START
     await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/start", {
       method: "POST",
       headers: {
@@ -158,7 +165,8 @@ async function startAuftrag(a: Auftrag) {
         "Authorization": `Bearer ${fahrer?.token}`
       },
       body: JSON.stringify({
-        auftrag_id: a.id
+        auftrag_id: a.id,
+        override_grund: grund
       })
     })
 
@@ -175,32 +183,59 @@ async function stopAuftrag() {
 
   if (!aktivAuftrag || !startZeit) return
 
-  const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${fahrer?.token}`
-    },
-    body: JSON.stringify({
-      auftrag_id: aktivAuftrag.id
+  if (!navigator.geolocation) {
+    alert("GPS nicht verfügbar")
+    return
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+
+    const dist = distance(
+      position.coords.latitude,
+      position.coords.longitude,
+      aktivAuftrag.start_lat,
+      aktivAuftrag.start_lng
+    )
+
+    let grund = ""
+
+    if (dist > RADIUS_KM) {
+
+      grund = prompt("Du bist außerhalb des 5km Radius.\nBitte Grund für Stop eingeben:") || ""
+
+      if (!grund) {
+        alert("Stop nicht durchgeführt – kein Grund angegeben.")
+        return
+      }
+    }
+
+    const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${fahrer?.token}`
+      },
+      body: JSON.stringify({
+        auftrag_id: aktivAuftrag.id,
+        override_grund_stop: grund
+      })
     })
+
+    const data = await res.json()
+
+    alert("Zeit gespeichert ✔")
+
+    setFahrer(prev => prev ? {
+      ...prev,
+      stunden: data.stunden ?? prev.stunden
+    } : prev)
+
+    setAktivAuftrag(null)
+    setStartZeit(null)
+    setLaufzeit(0)
+
   })
-
-  const data = await res.json()
-
-  alert("Zeit gespeichert ✔")
-
-  // Stunden aktualisieren
-  setFahrer(prev => prev ? {
-    ...prev,
-    stunden: data.stunden
-  } : prev)
-
-  setAktivAuftrag(null)
-  setStartZeit(null)
-  setLaufzeit(0)
 }
-
   /* ================= LOGIN VIEW ================= */
 
   if (!fahrer) {
@@ -244,7 +279,23 @@ async function stopAuftrag() {
       </div>
     )
   }
+function getCurrentCycleWeek(index: number) {
+  const now = new Date()
+  const currentKW = getISOWeek(now)
+  const jahr = now.getFullYear()
 
+  const cycleKW = currentKW + index
+  return { kw: cycleKW, jahr }
+}
+
+function getISOWeek(date: Date) {
+  const tmp = new Date(date.getTime())
+  tmp.setHours(0,0,0,0)
+  tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7))
+  const week1 = new Date(tmp.getFullYear(),0,4)
+  return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000
+           - 3 + ((week1.getDay() + 6) % 7)) / 7)
+}
   /* ================= DASHBOARD ================= */
 
   return (
