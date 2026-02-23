@@ -5,7 +5,10 @@ import { useState, useEffect } from "react"
 type Fahrer = {
   fahrer_id: number
   name: string
+  typ: string
+  stunden: number
   token: string
+}
 }
 
 type Auftrag = {
@@ -90,7 +93,13 @@ export default function Home() {
         return
       }
 
-      setFahrer(data)
+      setFahrer({
+  fahrer_id: data.fahrer_id,
+  name: data.name,
+  typ: data.typ,
+  stunden: data.stunden,
+  token: data.token
+})
 
       // Aufträge mit Token laden
       const a = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftraege", {
@@ -117,46 +126,81 @@ export default function Home() {
     setLaufzeit(0)
   }
 
-  /* ================= START ================= */
+  /* =========================================================
+   AUFTRAG START
+========================================================= */
 
-  function startAuftrag(a: Auftrag) {
+async function startAuftrag(a: Auftrag) {
 
-    if (!navigator.geolocation) {
-      alert("GPS nicht verfügbar")
+  if (!navigator.geolocation) {
+    alert("GPS nicht verfügbar")
+    return
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+
+    const dist = distance(
+      position.coords.latitude,
+      position.coords.longitude,
+      a.start_lat,
+      a.start_lng
+    )
+
+    if (dist > RADIUS_KM) {
+      alert("Nicht im erlaubten Radius (5km)")
       return
     }
 
-    navigator.geolocation.getCurrentPosition(position => {
-
-      const dist = distance(
-        position.coords.latitude,
-        position.coords.longitude,
-        a.start_lat,
-        a.start_lng
-      )
-
-      if (dist > RADIUS_KM) {
-        alert("Nicht im erlaubten Radius (5km)")
-        return
-      }
-
-      setAktivAuftrag(a)
-      setStartZeit(Date.now())
+    // 🔥 API CALL START
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${fahrer?.token}`
+      },
+      body: JSON.stringify({
+        auftrag_id: a.id
+      })
     })
-  }
 
-  /* ================= STOP ================= */
+    setAktivAuftrag(a)
+    setStartZeit(Date.now())
+  })
+}
 
-  function stopAuftrag() {
+/* =========================================================
+   AUFTRAG STOP
+========================================================= */
 
-    if (!aktivAuftrag || !startZeit) return
+async function stopAuftrag() {
 
-    alert("Auftrag beendet ✔")
+  if (!aktivAuftrag || !startZeit) return
 
-    setAktivAuftrag(null)
-    setStartZeit(null)
-    setLaufzeit(0)
-  }
+  const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${fahrer?.token}`
+    },
+    body: JSON.stringify({
+      auftrag_id: aktivAuftrag.id
+    })
+  })
+
+  const data = await res.json()
+
+  alert("Zeit gespeichert ✔")
+
+  // Stunden aktualisieren
+  setFahrer(prev => prev ? {
+    ...prev,
+    stunden: data.stunden
+  } : prev)
+
+  setAktivAuftrag(null)
+  setStartZeit(null)
+  setLaufzeit(0)
+}
 
   /* ================= LOGIN VIEW ================= */
 
@@ -210,9 +254,17 @@ export default function Home() {
       <div className="max-w-3xl mx-auto">
 
         <div className="flex justify-between mb-8">
-          <h2 className="text-xl font-bold">
-            Willkommen {fahrer.name}
-          </h2>
+          <div>
+  <h2 className="text-xl font-bold">
+    Willkommen {fahrer.name}
+  </h2>
+  <p className="text-sm text-gray-600">
+    Typ: {fahrer.typ}
+  </p>
+  <p className="text-sm text-gray-600">
+    Geleistete Stunden: {fahrer.stunden} h
+  </p>
+</div>
           <button
             onClick={logout}
             className="bg-red-500 text-white px-4 py-2 rounded-lg"
