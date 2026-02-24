@@ -32,6 +32,8 @@ export default function Home() {
   const [startZeit, setStartZeit] = useState<number | null>(null)
   const [laufzeit, setLaufzeit] = useState(0)
 
+  const [istPause, setIstPause] = useState(false)
+
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -53,12 +55,14 @@ export default function Home() {
   /* ================= TIMER ================= */
 
   useEffect(() => {
-    if (!startZeit) return
+    if (!startZeit || istPause) return
+
     const interval = setInterval(() => {
       setLaufzeit(Math.floor((Date.now() - startZeit) / 1000))
     }, 1000)
+
     return () => clearInterval(interval)
-  }, [startZeit])
+  }, [startZeit, istPause])
 
   /* ================= HELPERS ================= */
 
@@ -84,6 +88,21 @@ export default function Home() {
       ((tmp.getTime() - week1.getTime()) / 86400000
         - 3 + ((week1.getDay() + 6) % 7)) / 7
     )
+  }
+
+  const farbe = (wert: string) => {
+    switch (wert) {
+      case "Ganztag":
+        return "bg-green-100 border-green-400"
+      case "Halbtags":
+        return "bg-yellow-100 border-yellow-400"
+      case "Urlaub":
+        return "bg-red-100 border-red-400"
+      case "Frei":
+        return "bg-gray-100 border-gray-400"
+      default:
+        return ""
+    }
   }
 
   /* ================= LOGIN ================= */
@@ -172,7 +191,48 @@ export default function Home() {
 
       setAktivAuftrag(a)
       setStartZeit(Date.now())
+      setIstPause(false)
     })
+  }
+
+  /* ================= PAUSE ================= */
+
+  async function pauseAuftrag() {
+
+    if (!aktivAuftrag) return
+
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/pause", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${fahrer?.token}`
+      },
+      body: JSON.stringify({
+        auftrag_id: aktivAuftrag.id
+      })
+    })
+
+    setIstPause(true)
+  }
+
+  /* ================= FORTSETZEN ================= */
+
+  async function fortsetzenAuftrag() {
+
+    if (!aktivAuftrag) return
+
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/fortsetzen", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${fahrer?.token}`
+      },
+      body: JSON.stringify({
+        auftrag_id: aktivAuftrag.id
+      })
+    })
+
+    setIstPause(false)
   }
 
   /* ================= STOP ================= */
@@ -181,44 +241,27 @@ export default function Home() {
 
     if (!aktivAuftrag || !startZeit) return
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-
-      const dist = distance(
-        pos.coords.latitude,
-        pos.coords.longitude,
-        aktivAuftrag.start_lat,
-        aktivAuftrag.start_lng
-      )
-
-      let grund = ""
-
-      if (dist > RADIUS_KM) {
-        grund = prompt("Außerhalb 5km – Grund eingeben:") || ""
-        if (!grund) return alert("Kein Grund angegeben.")
-      }
-
-      const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${fahrer?.token}`
-        },
-        body: JSON.stringify({
-          auftrag_id: aktivAuftrag.id,
-          override_grund_stop: grund
-        })
+    const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${fahrer?.token}`
+      },
+      body: JSON.stringify({
+        auftrag_id: aktivAuftrag.id
       })
-
-      const data = await res.json()
-
-      setFahrer(prev => prev ? {
-        ...prev,
-        stunden: data.stunden ?? prev.stunden
-      } : prev)
-
-      setAktivAuftrag(null)
-      setStartZeit(null)
     })
+
+    const data = await res.json()
+
+    setFahrer(prev => prev ? {
+      ...prev,
+      stunden: data.stunden ?? prev.stunden
+    } : prev)
+
+    setAktivAuftrag(null)
+    setStartZeit(null)
+    setIstPause(false)
   }
 
   /* ================= LOGIN VIEW ================= */
@@ -254,114 +297,7 @@ export default function Home() {
       </div>
     )
   }
-const farbe = (wert: string) => {
-  switch (wert) {
-    case "Ganztag":
-      return "bg-green-100 border-green-400"
-    case "Halbtags":
-      return "bg-yellow-100 border-yellow-400"
-    case "Urlaub":
-      return "bg-red-100 border-red-400"
-    case "Frei":
-      return "bg-gray-100 border-gray-400"
-    default:
-      return ""
-  }
-}
-  /* ================= KAPAZITÄT VIEW ================= */
 
-if (view === "kapazitaet") {
-
-  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
-  const kw = getISOWeek(futureDate)
-  const jahr = futureDate.getFullYear()
-
-  const monday = new Date(futureDate)
-  monday.setDate(futureDate.getDate() - ((futureDate.getDay() + 6) % 7))
-
-  const saturday = new Date(monday)
-  saturday.setDate(monday.getDate() + 5)
-
-  async function speichern() {
-    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${fahrer!.token}`
-      },
-      body: JSON.stringify({ kw, jahr, plan })
-    })
-    alert("Gespeichert ✔")
-  }
-
-  return (
-    <div className="min-h-screen p-8 bg-gray-100">
-      <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
-
-        <h2 className="text-xl font-bold mb-2">
-          KW {kw} / {jahr}
-        </h2>
-
-        <p className="text-sm text-gray-600 mb-6">
-          {monday.toLocaleDateString("de-DE")} – {saturday.toLocaleDateString("de-DE")}
-        </p>
-
-        {Object.keys(plan).map((tag) => (
-          <div key={tag} className="mb-4">
-            <label className="block text-sm font-semibold mb-1">
-              {tag.toUpperCase()}
-            </label>
-
-            <select
-              value={(plan as any)[tag]}
-              onChange={(e) =>
-                setPlan({ ...plan, [tag]: e.target.value })
-              }
-              className={`w-full p-2 border rounded ${farbe((plan as any)[tag])}`}
-            >
-              <option value="">Bitte wählen</option>
-              <option value="Ganztag">Ganztag</option>
-              <option value="Halbtags">Halbtags</option>
-              <option value="Urlaub">Urlaub</option>
-              <option value="Frei">Frei</option>
-            </select>
-          </div>
-        ))}
-
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => setWeekIndex((weekIndex + 3) % 4)}
-            className="bg-gray-500 text-white px-3 py-2 rounded"
-          >
-            Vorherige Woche
-          </button>
-
-          <button
-            onClick={() => setWeekIndex((weekIndex + 1) % 4)}
-            className="bg-gray-500 text-white px-3 py-2 rounded"
-          >
-            Nächste Woche
-          </button>
-        </div>
-
-        <button
-          onClick={speichern}
-          className="w-full bg-green-600 text-white py-3 mt-6 rounded-lg"
-        >
-          Speichern
-        </button>
-
-        <button
-          onClick={() => setView("dashboard")}
-          className="w-full mt-4 text-blue-600"
-        >
-          Zurück
-        </button>
-
-      </div>
-    </div>
-  )
-}
   /* ================= DASHBOARD ================= */
 
   return (
@@ -377,32 +313,54 @@ if (view === "kapazitaet") {
             </p>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setView("kapazitaet")}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg"
-            >
-              Verfügbarkeit
-            </button>
-            <button
-              onClick={logout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg"
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={logout}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg"
+          >
+            Logout
+          </button>
         </div>
 
         {aktivAuftrag && (
           <div className="bg-green-100 p-4 mb-6 rounded-xl">
             <p><strong>Aktiver Auftrag:</strong> {aktivAuftrag.titel}</p>
-            <p>Laufzeit: {Math.floor(laufzeit / 60)} Minuten</p>
-            <button
-              onClick={stopAuftrag}
-              className="bg-red-600 text-white px-4 py-2 mt-3 rounded-lg"
-            >
-              Stoppen
-            </button>
+
+            {!istPause && (
+              <p>Laufzeit: {Math.floor(laufzeit / 60)} Minuten</p>
+            )}
+
+            {istPause && (
+              <p className="text-red-600 font-semibold">
+                ⏸ Pause läuft
+              </p>
+            )}
+
+            <div className="flex gap-2 mt-3">
+              {!istPause && (
+                <button
+                  onClick={pauseAuftrag}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Pause
+                </button>
+              )}
+
+              {istPause && (
+                <button
+                  onClick={fortsetzenAuftrag}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Fortsetzen
+                </button>
+              )}
+
+              <button
+                onClick={stopAuftrag}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg"
+              >
+                Stoppen
+              </button>
+            </div>
           </div>
         )}
 
