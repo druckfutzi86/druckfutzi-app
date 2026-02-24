@@ -254,72 +254,7 @@ export default function Home() {
       </div>
     )
   }
-
-  /* ================= KAPAZITÄT VIEW ================= */
-
-if (view === "kapazitaet") {
-
-  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
-  const kw = getISOWeek(futureDate)
-  const jahr = futureDate.getFullYear()
-
-  // Montag berechnen
-  const monday = new Date(futureDate)
-  monday.setDate(futureDate.getDate() - ((futureDate.getDay() + 6) % 7))
-
-  const saturday = new Date(monday)
-  saturday.setDate(monday.getDate() + 5)
-
-  const formatDate = (d: Date) =>
-    d.toLocaleDateString("de-DE")
-
-  async function speichern() {
-    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${fahrer!.token}`
-      },
-      body: JSON.stringify({ kw, jahr, plan })
-    })
-
-    alert("Gespeichert ✔")
-  }
-
-  const optionen = ["Ganztag", "Halbtags", "Urlaub", "Frei"]
-
-  return (
-    <div className="min-h-screen p-8 bg-gray-100">
-      <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
-
-        <h2 className="text-xl font-bold mb-2">
-          KW {kw} / {jahr}
-        </h2>
-
-        <p className="text-sm text-gray-600 mb-6">
-          {formatDate(monday)} – {formatDate(saturday)}
-        </p>
-
-        {Object.keys(plan).map((tag) => (
-          <div key={tag} className="mb-4">
-            <label className="block text-sm font-semibold mb-1">
-              {tag.toUpperCase()}
-            </label>
-
-            <select
-  value={(plan as any)[tag]}
-  onChange={(e) =>
-    setPlan({ ...plan, [tag]: e.target.value })
-  }
-  className={`w-full p-2 border rounded ${farbe((plan as any)[tag])}`}
->
-  <option value="">Bitte wählen</option>
-  <option value="Ganztag">Ganztag</option>
-  <option value="Halbtags">Halbtags</option>
-  <option value="Urlaub">Urlaub</option>
-  <option value="Frei">Frei</option>
-</select>
-            const farbe = (wert: string) => {
+const farbe = (wert: string) => {
   switch (wert) {
     case "Ganztag":
       return "bg-green-100 border-green-400"
@@ -333,6 +268,63 @@ if (view === "kapazitaet") {
       return ""
   }
 }
+  /* ================= KAPAZITÄT VIEW ================= */
+
+if (view === "kapazitaet") {
+
+  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
+  const kw = getISOWeek(futureDate)
+  const jahr = futureDate.getFullYear()
+
+  const monday = new Date(futureDate)
+  monday.setDate(futureDate.getDate() - ((futureDate.getDay() + 6) % 7))
+
+  const saturday = new Date(monday)
+  saturday.setDate(monday.getDate() + 5)
+
+  async function speichern() {
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${fahrer!.token}`
+      },
+      body: JSON.stringify({ kw, jahr, plan })
+    })
+    alert("Gespeichert ✔")
+  }
+
+  return (
+    <div className="min-h-screen p-8 bg-gray-100">
+      <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+
+        <h2 className="text-xl font-bold mb-2">
+          KW {kw} / {jahr}
+        </h2>
+
+        <p className="text-sm text-gray-600 mb-6">
+          {monday.toLocaleDateString("de-DE")} – {saturday.toLocaleDateString("de-DE")}
+        </p>
+
+        {Object.keys(plan).map((tag) => (
+          <div key={tag} className="mb-4">
+            <label className="block text-sm font-semibold mb-1">
+              {tag.toUpperCase()}
+            </label>
+
+            <select
+              value={(plan as any)[tag]}
+              onChange={(e) =>
+                setPlan({ ...plan, [tag]: e.target.value })
+              }
+              className={`w-full p-2 border rounded ${farbe((plan as any)[tag])}`}
+            >
+              <option value="">Bitte wählen</option>
+              <option value="Ganztag">Ganztag</option>
+              <option value="Halbtags">Halbtags</option>
+              <option value="Urlaub">Urlaub</option>
+              <option value="Frei">Frei</option>
+            </select>
           </div>
         ))}
 
@@ -362,40 +354,7 @@ if (view === "kapazitaet") {
         <button
           onClick={() => setView("dashboard")}
           className="w-full mt-4 text-blue-600"
-        useEffect(() => {
-
-  async function ladePlan() {
-
-    const res = await fetch(
-      `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
-      {
-        headers: {
-          Authorization: `Bearer ${fahrer!.token}`
-        }
-      }
-    )
-
-    const data = await res.json()
-
-    if (data && Object.keys(data).length > 0) {
-      setPlan(data)
-    } else {
-      setPlan({
-        mo: "",
-        di: "",
-        mi: "",
-        do: "",
-        fr: "",
-        sa: "",
-        so: ""
-      })
-    }
-  }
-
-  ladePlan()
-
-}, [weekIndex])
->
+        >
           Zurück
         </button>
 
@@ -403,7 +362,6 @@ if (view === "kapazitaet") {
     </div>
   )
 }
-
   /* ================= DASHBOARD ================= */
 
   return (
