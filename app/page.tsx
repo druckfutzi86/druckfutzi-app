@@ -257,75 +257,139 @@ export default function Home() {
 
   /* ================= KAPAZITÄT VIEW ================= */
 
-  if (view === "kapazitaet") {
+if (view === "kapazitaet") {
 
-    const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
-    const kw = getISOWeek(futureDate)
-    const jahr = futureDate.getFullYear()
+  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
+  const kw = getISOWeek(futureDate)
+  const jahr = futureDate.getFullYear()
 
-    async function speichern() {
-      await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${fahrer!.token}`
-        },
-        body: JSON.stringify({ kw, jahr, plan })
-      })
-      alert("Gespeichert ✔")
-    }
+  // Montag berechnen
+  const monday = new Date(futureDate)
+  monday.setDate(futureDate.getDate() - ((futureDate.getDay() + 6) % 7))
 
-    return (
-      <div className="min-h-screen p-8 bg-gray-100">
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
-          <h2 className="text-xl font-bold mb-4">
-            Verfügbarkeit KW {kw} / {jahr}
-          </h2>
+  const saturday = new Date(monday)
+  saturday.setDate(monday.getDate() + 5)
 
-          {Object.keys(plan).map((tag) => (
-            <input
-              key={tag}
+  const formatDate = (d: Date) =>
+    d.toLocaleDateString("de-DE")
+
+  async function speichern() {
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${fahrer!.token}`
+      },
+      body: JSON.stringify({ kw, jahr, plan })
+    })
+
+    alert("Gespeichert ✔")
+  }
+
+  const optionen = ["Ganztag", "Halbtags", "Urlaub", "Frei"]
+
+  return (
+    <div className="min-h-screen p-8 bg-gray-100">
+      <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+
+        <h2 className="text-xl font-bold mb-2">
+          KW {kw} / {jahr}
+        </h2>
+
+        <p className="text-sm text-gray-600 mb-6">
+          {formatDate(monday)} – {formatDate(saturday)}
+        </p>
+
+        {Object.keys(plan).map((tag) => (
+          <div key={tag} className="mb-4">
+            <label className="block text-sm font-semibold mb-1">
+              {tag.toUpperCase()}
+            </label>
+
+            <select
               value={(plan as any)[tag]}
               onChange={(e) =>
                 setPlan({ ...plan, [tag]: e.target.value })
               }
-              className="w-full mb-3 p-2 border rounded"
-              placeholder={tag.toUpperCase()}
-            />
-          ))}
-
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={() => setWeekIndex((weekIndex + 3) % 4)}
-              className="bg-gray-500 text-white px-3 py-2 rounded"
+              className="w-full p-2 border rounded"
             >
-              Vorherige
-            </button>
-            <button
-              onClick={() => setWeekIndex((weekIndex + 1) % 4)}
-              className="bg-gray-500 text-white px-3 py-2 rounded"
-            >
-              Nächste
-            </button>
+              <option value="">Bitte wählen</option>
+              {optionen.map(opt => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
           </div>
+        ))}
 
+        <div className="flex justify-between mt-6">
           <button
-            onClick={speichern}
-            className="w-full bg-green-600 text-white py-3 mt-6 rounded-lg"
+            onClick={() => setWeekIndex((weekIndex + 3) % 4)}
+            className="bg-gray-500 text-white px-3 py-2 rounded"
           >
-            Speichern
+            Vorherige Woche
           </button>
 
           <button
-            onClick={() => setView("dashboard")}
-            className="w-full mt-4 text-blue-600"
+            onClick={() => setWeekIndex((weekIndex + 1) % 4)}
+            className="bg-gray-500 text-white px-3 py-2 rounded"
           >
-            Zurück
+            Nächste Woche
           </button>
         </div>
-      </div>
+
+        <button
+          onClick={speichern}
+          className="w-full bg-green-600 text-white py-3 mt-6 rounded-lg"
+        >
+          Speichern
+        </button>
+
+        <button
+          onClick={() => setView("dashboard")}
+          className="w-full mt-4 text-blue-600"
+        useEffect(() => {
+
+  async function ladePlan() {
+
+    const res = await fetch(
+      `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
+      {
+        headers: {
+          Authorization: `Bearer ${fahrer!.token}`
+        }
+      }
     )
+
+    const data = await res.json()
+
+    if (data && Object.keys(data).length > 0) {
+      setPlan(data)
+    } else {
+      setPlan({
+        mo: "",
+        di: "",
+        mi: "",
+        do: "",
+        fr: "",
+        sa: "",
+        so: ""
+      })
+    }
   }
+
+  ladePlan()
+
+}, [weekIndex])
+>
+          Zurück
+        </button>
+
+      </div>
+    </div>
+  )
+}
 
   /* ================= DASHBOARD ================= */
 
