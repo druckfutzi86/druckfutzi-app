@@ -77,7 +77,7 @@ useEffect(() => {
       `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
       {
         headers: {
-          Authorization: `Bearer ${fahrer.token}`
+          Authorization: `Bearer ${fahrer!.token}`
         }
       }
     )
