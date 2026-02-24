@@ -31,11 +31,7 @@ export default function Home() {
 
   const [startZeit, setStartZeit] = useState<number | null>(null)
   const [laufzeit, setLaufzeit] = useState(0)
-
   const [istPause, setIstPause] = useState(false)
-
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
 
   const [view, setView] = useState<"dashboard" | "kapazitaet">("dashboard")
   const [weekIndex, setWeekIndex] = useState(0)
@@ -49,6 +45,9 @@ export default function Home() {
     sa: "",
     so: ""
   })
+
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const RADIUS_KM = 5
 
@@ -64,6 +63,45 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [startZeit, istPause])
 
+useEffect(() => {
+
+  if (view !== "kapazitaet" || !fahrer) return
+
+  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
+  const kw = getISOWeek(futureDate)
+  const jahr = futureDate.getFullYear()
+
+  async function ladePlan() {
+
+    const res = await fetch(
+      `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
+      {
+        headers: {
+          Authorization: `Bearer ${fahrer.token}`
+        }
+      }
+    )
+
+    const data = await res.json()
+
+    if (data && Object.keys(data).length > 0) {
+      setPlan(data)
+    } else {
+      setPlan({
+        mo: "",
+        di: "",
+        mi: "",
+        do: "",
+        fr: "",
+        sa: "",
+        so: ""
+      })
+    }
+  }
+
+  ladePlan()
+
+}, [weekIndex, view, fahrer])
   /* ================= HELPERS ================= */
 
   function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -198,7 +236,6 @@ export default function Home() {
   /* ================= PAUSE ================= */
 
   async function pauseAuftrag() {
-
     if (!aktivAuftrag) return
 
     await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/pause", {
@@ -207,9 +244,7 @@ export default function Home() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${fahrer?.token}`
       },
-      body: JSON.stringify({
-        auftrag_id: aktivAuftrag.id
-      })
+      body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
     })
 
     setIstPause(true)
@@ -218,7 +253,6 @@ export default function Home() {
   /* ================= FORTSETZEN ================= */
 
   async function fortsetzenAuftrag() {
-
     if (!aktivAuftrag) return
 
     await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/fortsetzen", {
@@ -227,9 +261,7 @@ export default function Home() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${fahrer?.token}`
       },
-      body: JSON.stringify({
-        auftrag_id: aktivAuftrag.id
-      })
+      body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
     })
 
     setIstPause(false)
@@ -238,7 +270,6 @@ export default function Home() {
   /* ================= STOP ================= */
 
   async function stopAuftrag() {
-
     if (!aktivAuftrag || !startZeit) return
 
     const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
@@ -247,9 +278,7 @@ export default function Home() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${fahrer?.token}`
       },
-      body: JSON.stringify({
-        auftrag_id: aktivAuftrag.id
-      })
+      body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
     })
 
     const data = await res.json()
@@ -271,28 +300,109 @@ export default function Home() {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-xl shadow w-full max-w-sm">
           <h1 className="text-2xl font-bold text-center mb-6">Fahrer Login</h1>
-          <input
-            type="number"
-            placeholder="Fahrer-ID"
-            value={fahrerId}
+          <input type="number" placeholder="Fahrer-ID" value={fahrerId}
             onChange={(e) => setFahrerId(e.target.value)}
             className="w-full mb-4 p-3 border rounded-lg"
           />
-          <input
-            type="password"
-            placeholder="PIN"
-            value={pin}
+          <input type="password" placeholder="PIN" value={pin}
             onChange={(e) => setPin(e.target.value)}
             className="w-full mb-4 p-3 border rounded-lg"
           />
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-          <button
-            onClick={login}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg"
-          >
+          <button onClick={login} disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg">
             {loading ? "Prüfe..." : "Login"}
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  /* ================= KAPAZITÄT ================= */
+
+  if (view === "kapazitaet") {
+
+    const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
+    const kw = getISOWeek(futureDate)
+    const jahr = futureDate.getFullYear()
+
+    const monday = new Date(futureDate)
+    monday.setDate(futureDate.getDate() - ((futureDate.getDay() + 6) % 7))
+
+    const saturday = new Date(monday)
+    saturday.setDate(monday.getDate() + 5)
+
+    async function speichern() {
+      await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${fahrer.token}`
+        },
+        body: JSON.stringify({ kw, jahr, plan })
+      })
+      alert("Gespeichert ✔")
+    }
+
+    return (
+      <div className="min-h-screen p-8 bg-gray-100">
+        <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+
+          <h2 className="text-xl font-bold mb-2">
+            KW {kw} / {jahr}
+          </h2>
+
+          <p className="text-sm text-gray-600 mb-6">
+            {monday.toLocaleDateString("de-DE")} – {saturday.toLocaleDateString("de-DE")}
+          </p>
+
+          {Object.keys(plan).map((tag) => (
+            <div key={tag} className="mb-4">
+              <label className="block text-sm font-semibold mb-1">
+                {tag.toUpperCase()}
+              </label>
+
+              <select
+                value={(plan as any)[tag]}
+                onChange={(e) =>
+                  setPlan({ ...plan, [tag]: e.target.value })
+                }
+                className={`w-full p-2 border rounded ${farbe((plan as any)[tag])}`}
+              >
+                <option value="">Bitte wählen</option>
+                <option value="Ganztag">Ganztag</option>
+                <option value="Halbtags">Halbtags</option>
+                <option value="Urlaub">Urlaub</option>
+                <option value="Frei">Frei</option>
+              </select>
+            </div>
+          ))}
+
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={() => setWeekIndex((weekIndex + 3) % 4)}
+              className="bg-gray-500 text-white px-3 py-2 rounded">
+              Vorherige Woche
+            </button>
+
+            <button
+              onClick={() => setWeekIndex((weekIndex + 1) % 4)}
+              className="bg-gray-500 text-white px-3 py-2 rounded">
+              Nächste Woche
+            </button>
+          </div>
+
+          <button onClick={speichern}
+            className="w-full bg-green-600 text-white py-3 mt-6 rounded-lg">
+            Speichern
+          </button>
+
+          <button
+            onClick={() => setView("dashboard")}
+            className="w-full mt-4 text-blue-600">
+            Zurück
+          </button>
+
         </div>
       </div>
     )
@@ -313,12 +423,19 @@ export default function Home() {
             </p>
           </div>
 
-          <button
-            onClick={logout}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg"
-          >
-            Logout
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setView("kapazitaet")}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg">
+              Verfügbarkeit
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg">
+              Logout
+            </button>
+          </div>
         </div>
 
         {aktivAuftrag && (
@@ -339,8 +456,7 @@ export default function Home() {
               {!istPause && (
                 <button
                   onClick={pauseAuftrag}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
-                >
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg">
                   Pause
                 </button>
               )}
@@ -348,16 +464,14 @@ export default function Home() {
               {istPause && (
                 <button
                   onClick={fortsetzenAuftrag}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                >
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg">
                   Fortsetzen
                 </button>
               )}
 
               <button
                 onClick={stopAuftrag}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg"
-              >
+                className="bg-red-600 text-white px-4 py-2 rounded-lg">
                 Stoppen
               </button>
             </div>
@@ -373,8 +487,7 @@ export default function Home() {
               {!aktivAuftrag && (
                 <button
                   onClick={() => startAuftrag(a)}
-                  className="bg-blue-600 text-white px-4 py-2 mt-2 rounded-lg"
-                >
+                  className="bg-blue-600 text-white px-4 py-2 mt-2 rounded-lg">
                   Auftrag starten
                 </button>
               )}
