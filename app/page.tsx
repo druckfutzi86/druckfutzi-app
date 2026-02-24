@@ -37,13 +37,7 @@ export default function Home() {
   const [weekIndex, setWeekIndex] = useState(0)
 
   const [plan, setPlan] = useState({
-    mo: "",
-    di: "",
-    mi: "",
-    do: "",
-    fr: "",
-    sa: "",
-    so: ""
+    mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: ""
   })
 
   const [error, setError] = useState("")
@@ -63,45 +57,18 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [startZeit, istPause])
 
-useEffect(() => {
+  /* ================= iOS WIEDERHERSTELLUNG ================= */
 
-  if (view !== "kapazitaet" || !fahrer) return
+  useEffect(() => {
+    const gespeicherteZeit = localStorage.getItem("startZeit")
+    const gespeicherterAuftrag = localStorage.getItem("aktivAuftrag")
 
-  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
-  const kw = getISOWeek(futureDate)
-  const jahr = futureDate.getFullYear()
-
-  async function ladePlan() {
-
-    const res = await fetch(
-      `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
-      {
-        headers: {
-          Authorization: `Bearer ${fahrer!.token}`
-        }
-      }
-    )
-
-    const data = await res.json()
-
-    if (data && Object.keys(data).length > 0) {
-      setPlan(data)
-    } else {
-      setPlan({
-        mo: "",
-        di: "",
-        mi: "",
-        do: "",
-        fr: "",
-        sa: "",
-        so: ""
-      })
+    if (gespeicherteZeit && gespeicherterAuftrag) {
+      setStartZeit(Number(gespeicherteZeit))
+      setAktivAuftrag(JSON.parse(gespeicherterAuftrag))
     }
-  }
+  }, [])
 
-  ladePlan()
-
-}, [weekIndex, view, fahrer])
   /* ================= HELPERS ================= */
 
   function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -130,18 +97,46 @@ useEffect(() => {
 
   const farbe = (wert: string) => {
     switch (wert) {
-      case "Ganztag":
-        return "bg-green-100 border-green-400"
-      case "Halbtags":
-        return "bg-yellow-100 border-yellow-400"
-      case "Urlaub":
-        return "bg-red-100 border-red-400"
-      case "Frei":
-        return "bg-gray-100 border-gray-400"
-      default:
-        return ""
+      case "Ganztag": return "bg-green-100 border-green-400"
+      case "Halbtags": return "bg-yellow-100 border-yellow-400"
+      case "Urlaub": return "bg-red-100 border-red-400"
+      case "Frei": return "bg-gray-100 border-gray-400"
+      default: return ""
     }
   }
+
+  /* ================= KAPAZITÄT AUTO LADEN ================= */
+
+  useEffect(() => {
+
+    if (view !== "kapazitaet" || !fahrer) return
+
+    const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000)
+    const kw = getISOWeek(futureDate)
+    const jahr = futureDate.getFullYear()
+
+    async function ladePlan() {
+      const res = await fetch(
+        `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
+        {
+          headers: {
+            Authorization: `Bearer ${fahrer.token}`
+          }
+        }
+      )
+
+      const data = await res.json()
+
+      if (data && Object.keys(data).length > 0) {
+        setPlan(data)
+      } else {
+        setPlan({ mo:"",di:"",mi:"",do:"",fr:"",sa:"",so:"" })
+      }
+    }
+
+    ladePlan()
+
+  }, [weekIndex, view, fahrer])
 
   /* ================= LOGIN ================= */
 
@@ -215,64 +210,40 @@ useEffect(() => {
         if (!grund) return alert("Kein Grund angegeben.")
       }
 
-      await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${fahrer?.token}`
-        },
-        body: JSON.stringify({
-          auftrag_id: a.id,
-          override_grund: grund
-        })
-      })
+      const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/start", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${fahrer?.token}`
+  },
+  body: JSON.stringify({
+    auftrag_id: a.id,
+    override_grund: grund
+  })
+})
 
+if (!res.ok) {
+  const data = await res.json()
+  alert(data.error || "Start nicht möglich")
+  return
+}
+      const now = Date.now()
       setAktivAuftrag(a)
-      setStartZeit(Date.now())
+      setStartZeit(now)
       setIstPause(false)
+
+      localStorage.setItem("startZeit", now.toString())
+      localStorage.setItem("aktivAuftrag", JSON.stringify(a))
     })
   }
 
-  /* ================= PAUSE ================= */
-
-  async function pauseAuftrag() {
-    if (!aktivAuftrag) return
-
-    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/pause", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${fahrer?.token}`
-      },
-      body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
-    })
-
-    setIstPause(true)
-  }
-
-  /* ================= FORTSETZEN ================= */
-
-  async function fortsetzenAuftrag() {
-    if (!aktivAuftrag) return
-
-    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/fortsetzen", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${fahrer?.token}`
-      },
-      body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
-    })
-
-    setIstPause(false)
-  }
-
-  /* ================= STOP ================= */
+  async function pauseAuftrag() { setIstPause(true) }
+  async function fortsetzenAuftrag() { setIstPause(false) }
 
   async function stopAuftrag() {
-    if (!aktivAuftrag || !startZeit) return
+    if (!aktivAuftrag) return
 
-    const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
+    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -280,17 +251,13 @@ useEffect(() => {
       },
       body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
     })
-
-    const data = await res.json()
-
-    setFahrer(prev => prev ? {
-      ...prev,
-      stunden: data.stunden ?? prev.stunden
-    } : prev)
 
     setAktivAuftrag(null)
     setStartZeit(null)
     setIstPause(false)
+
+    localStorage.removeItem("startZeit")
+    localStorage.removeItem("aktivAuftrag")
   }
 
   /* ================= LOGIN VIEW ================= */
@@ -300,16 +267,17 @@ useEffect(() => {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-xl shadow w-full max-w-sm">
           <h1 className="text-2xl font-bold text-center mb-6">Fahrer Login</h1>
-          <input type="number" placeholder="Fahrer-ID" value={fahrerId}
+          <input type="number" placeholder="Fahrer-ID"
+            value={fahrerId}
             onChange={(e) => setFahrerId(e.target.value)}
-            className="w-full mb-4 p-3 border rounded-lg"
-          />
-          <input type="password" placeholder="PIN" value={pin}
+            className="w-full mb-4 p-3 border rounded-lg" />
+          <input type="password" placeholder="PIN"
+            value={pin}
             onChange={(e) => setPin(e.target.value)}
-            className="w-full mb-4 p-3 border rounded-lg"
-          />
+            className="w-full mb-4 p-3 border rounded-lg" />
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-          <button onClick={login} disabled={loading}
+          <button onClick={login}
+            disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg">
             {loading ? "Prüfe..." : "Login"}
           </button>
@@ -318,7 +286,7 @@ useEffect(() => {
     )
   }
 
-  /* ================= KAPAZITÄT ================= */
+  /* ================= KAPAZITÄT VIEW ================= */
 
   if (view === "kapazitaet") {
 
@@ -337,7 +305,7 @@ useEffect(() => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${fahrer!.token}`
+          Authorization: `Bearer ${fahrer.token}`
         },
         body: JSON.stringify({ kw, jahr, plan })
       })
@@ -447,30 +415,25 @@ useEffect(() => {
             )}
 
             {istPause && (
-              <p className="text-red-600 font-semibold">
-                ⏸ Pause läuft
-              </p>
+              <p className="text-red-600 font-semibold">⏸ Pause läuft</p>
             )}
 
             <div className="flex gap-2 mt-3">
-              {!istPause && (
-                <button
-                  onClick={pauseAuftrag}
+              {!istPause &&
+                <button onClick={pauseAuftrag}
                   className="bg-yellow-500 text-white px-4 py-2 rounded-lg">
                   Pause
                 </button>
-              )}
+              }
 
-              {istPause && (
-                <button
-                  onClick={fortsetzenAuftrag}
+              {istPause &&
+                <button onClick={fortsetzenAuftrag}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg">
                   Fortsetzen
                 </button>
-              )}
+              }
 
-              <button
-                onClick={stopAuftrag}
+              <button onClick={stopAuftrag}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg">
                 Stoppen
               </button>
@@ -484,13 +447,13 @@ useEffect(() => {
             <div key={a.id} className="border p-3 mb-3 rounded-lg">
               <p><strong>{a.titel}</strong></p>
               <p>{a.datum}</p>
-              {!aktivAuftrag && (
+              {!aktivAuftrag &&
                 <button
                   onClick={() => startAuftrag(a)}
                   className="bg-blue-600 text-white px-4 py-2 mt-2 rounded-lg">
                   Auftrag starten
                 </button>
-              )}
+              }
             </div>
           ))}
         </div>
