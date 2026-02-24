@@ -307,19 +307,32 @@ if (view === "kapazitaet") {
             </label>
 
             <select
-              value={(plan as any)[tag]}
-              onChange={(e) =>
-                setPlan({ ...plan, [tag]: e.target.value })
-              }
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Bitte wählen</option>
-              {optionen.map(opt => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+  value={(plan as any)[tag]}
+  onChange={(e) =>
+    setPlan({ ...plan, [tag]: e.target.value })
+  }
+  className={`w-full p-2 border rounded ${farbe((plan as any)[tag])}`}
+>
+  <option value="">Bitte wählen</option>
+  <option value="Ganztag">Ganztag</option>
+  <option value="Halbtags">Halbtags</option>
+  <option value="Urlaub">Urlaub</option>
+  <option value="Frei">Frei</option>
+</select>
+            const farbe = (wert: string) => {
+  switch (wert) {
+    case "Ganztag":
+      return "bg-green-100 border-green-400"
+    case "Halbtags":
+      return "bg-yellow-100 border-yellow-400"
+    case "Urlaub":
+      return "bg-red-100 border-red-400"
+    case "Frei":
+      return "bg-gray-100 border-gray-400"
+    default:
+      return ""
+  }
+}
           </div>
         ))}
 
