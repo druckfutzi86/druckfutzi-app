@@ -268,7 +268,7 @@ export default function Home() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${fahrer!.token}``
+          Authorization: `Bearer ${fahrer!.token}`
         },
         body: JSON.stringify({ kw, jahr, plan })
       })
