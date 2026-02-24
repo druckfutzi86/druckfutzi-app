@@ -120,7 +120,7 @@ export default function Home() {
         `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
         {
           headers: {
-            Authorization: `Bearer ${fahrer.token}`
+            Authorization: `Bearer ${fahrer!.token}`
           }
         }
       )
@@ -305,7 +305,7 @@ if (!res.ok) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${fahrer.token}`
+          Authorization: `Bearer ${fahrer!.token}`
         },
         body: JSON.stringify({ kw, jahr, plan })
       })
