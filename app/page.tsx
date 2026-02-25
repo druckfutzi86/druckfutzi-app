@@ -117,20 +117,23 @@ export default function Home() {
 
     async function ladePlan() {
   try {
-    const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}", {
+   const res = await fetch(`https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`, {
   headers: {
     Authorization: `Bearer ${fahrer!.token}`
   }
-})
+});
 
 if (!res.ok) {
-  throw new Error("Fehler beim Laden der Kapazitäten: " + res.statusText)
+  const errorDetails = await res.text(); // Hole die Fehlerdetails als Text
+  throw new Error(`Fehler beim Laden der Kapazitäten: ${res.statusText} - Details: ${errorDetails}`);
 }
 
-// Überprüfe, ob die Antwort im richtigen Format ist (Content-Type: application/json)
-const contentType = res.headers.get("Content-Type");
-if (!contentType || !contentType.includes("application/json")) {
-  throw new Error("Die Antwort ist kein JSON");
+let data;
+try {
+  data = await res.json(); // Versuche die Antwort zu parsen
+} catch (error) {
+  const errorText = await res.text(); // Hole die Antwort als Text, wenn JSON nicht geparst werden kann
+  throw new Error(`Fehler beim Parsen der Antwort: ${error.message} - Antwort: ${errorText}`);
 }
 
 const data = await res.json()
