@@ -220,75 +220,184 @@ export default function Home() {
 
   /* ================= START ================= */
 
-  async function startAuftrag(a: Auftrag) {
+  /* ================= START / PAUSE / STOP (API VERSION) ================= */
 
-    if (!navigator.geolocation) return alert("GPS nicht verfügbar")
+async function startAuftrag(a: Auftrag) {
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+  if (!navigator.geolocation) {
+    alert("GPS nicht verfügbar")
+    return
+  }
 
-      const dist = distance(
-        pos.coords.latitude,
-        pos.coords.longitude,
-        a.start_lat,
-        a.start_lng
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+
+    const dist = distance(
+      pos.coords.latitude,
+      pos.coords.longitude,
+      a.start_lat,
+      a.start_lng
+    )
+
+    let grund = ""
+
+    if (dist > RADIUS_KM) {
+      grund = prompt("Außerhalb 5km – Grund eingeben:") || ""
+      if (!grund) {
+        alert("Kein Grund angegeben.")
+        return
+      }
+    }
+
+    try {
+      const res = await fetch(
+        "https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/starten",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${fahrer?.token}`
+          },
+          body: JSON.stringify({
+            auftrag_id: a.id,
+            override_grund: grund
+          })
+        }
       )
 
-      let grund = ""
+      const data = await res.json()
 
-      if (dist > RADIUS_KM) {
-        grund = prompt("Außerhalb 5km – Grund eingeben:") || ""
-        if (!grund) return alert("Kein Grund angegeben.")
+      if (!res.ok) {
+        alert(data.error || "Start nicht möglich")
+        return
       }
 
-      const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/start", {
+      const now = Date.now()
+
+      setAktivAuftrag(a)
+      setStartZeit(now)
+      setIstPause(false)
+      setLaufzeit(0)
+
+      localStorage.setItem("startZeit", now.toString())
+      localStorage.setItem("aktivAuftrag", JSON.stringify(a))
+
+    } catch (err) {
+      alert("Serverfehler beim Starten")
+    }
+
+  })
+}
+
+/* ================= PAUSE ================= */
+
+async function pauseAuftrag() {
+
+  if (!aktivAuftrag) return
+
+  try {
+    const res = await fetch(
+      "https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/pausieren",
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${fahrer?.token}`
         },
         body: JSON.stringify({
-          auftrag_id: a.id,
-          override_grund: grund
+          auftrag_id: aktivAuftrag.id
         })
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        alert(data.error || "Start nicht möglich")
-        return
       }
-      const now = Date.now()
-      setAktivAuftrag(a)
-      setStartZeit(now)
-      setIstPause(false)
+    )
 
-      localStorage.setItem("startZeit", now.toString())
-      localStorage.setItem("aktivAuftrag", JSON.stringify(a))
-    })
+    const data = await res.json()
+
+    if (!res.ok) {
+      alert(data.error || "Pause nicht möglich")
+      return
+    }
+
+    setIstPause(true)
+
+  } catch {
+    alert("Serverfehler bei Pause")
   }
+}
 
-  async function pauseAuftrag() { setIstPause(true) }
-  async function fortsetzenAuftrag() { setIstPause(false) }
+/* ================= FORTSETZEN ================= */
 
-  async function stopAuftrag() {
-    if (!aktivAuftrag) return
+async function fortsetzenAuftrag() {
 
-    await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/stop", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${fahrer?.token}`
-      },
-      body: JSON.stringify({ auftrag_id: aktivAuftrag.id })
-    })
+  if (!aktivAuftrag) return
+
+  try {
+    const res = await fetch(
+      "https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/fortsetzen",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${fahrer?.token}`
+        },
+        body: JSON.stringify({
+          auftrag_id: aktivAuftrag.id
+        })
+      }
+    )
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      alert(data.error || "Fortsetzen nicht möglich")
+      return
+    }
+
+    setIstPause(false)
+
+  } catch {
+    alert("Serverfehler beim Fortsetzen")
+  }
+}
+
+/* ================= STOP ================= */
+
+async function stopAuftrag() {
+
+  if (!aktivAuftrag) return
+
+  try {
+    const res = await fetch(
+      "https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/beenden",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${fahrer?.token}`
+        },
+        body: JSON.stringify({
+          auftrag_id: aktivAuftrag.id
+        })
+      }
+    )
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      alert(data.error || "Stop nicht möglich")
+      return
+    }
 
     setAktivAuftrag(null)
     setStartZeit(null)
     setIstPause(false)
+    setLaufzeit(0)
 
     localStorage.removeItem("startZeit")
     localStorage.removeItem("aktivAuftrag")
+
+  } catch {
+    alert("Serverfehler beim Beenden")
   }
+}
 
   /* ================= LOGIN VIEW ================= */
 
