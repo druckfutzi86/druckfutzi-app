@@ -138,7 +138,7 @@ export default function Home() {
     async function ladePlan() {
       try {
         const res = await fetch(
-          `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
+          `https://druckfutzi.de/wp-json/druckfutzi/v1/verfuegbarkeit?kw=${kw}&jahr=${jahr}`,
           {
             headers: {
               Authorization: `Bearer ${fahrer!.token}`,
@@ -223,28 +223,26 @@ export default function Home() {
   /* ================= START / PAUSE / STOP (API VERSION) ================= */
 
 async function startAuftrag(a: Auftrag) {
-
   if (!navigator.geolocation) {
-    alert("GPS nicht verfügbar")
-    return
+    alert("GPS nicht verfügbar");
+    return;
   }
 
   navigator.geolocation.getCurrentPosition(async (pos) => {
-
     const dist = distance(
       pos.coords.latitude,
       pos.coords.longitude,
       a.start_lat,
       a.start_lng
-    )
+    );
 
-    let grund = ""
+    let grund = "";
 
     if (dist > RADIUS_KM) {
-      grund = prompt("Außerhalb 5km – Grund eingeben:") || ""
+      grund = prompt("Außerhalb 5km – Grund eingeben:") || "";
       if (!grund) {
-        alert("Kein Grund angegeben.")
-        return
+        alert("Kein Grund angegeben.");
+        return;
       }
     }
 
@@ -255,39 +253,38 @@ async function startAuftrag(a: Auftrag) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${fahrer?.token}`
+            Authorization: `Bearer ${fahrer?.token}`,
           },
           body: JSON.stringify({
             auftrag_id: a.id,
-            override_grund: grund
-          })
+            override_grund: grund,
+          }),
         }
-      )
+      );
 
-      const data = await res.json()
+      const data = await res.json(); // Antwort der API
 
       if (!res.ok) {
-        alert(data.error || "Start nicht möglich")
-        return
+        console.error("Fehler bei der API-Antwort:", data); // Zeige die genaue Fehlermeldung an
+        alert(data.error || "Start nicht möglich");
+        return;
       }
 
-      const now = Date.now()
+      const now = Date.now();
 
-      setAktivAuftrag(a)
-      setStartZeit(now)
-      setIstPause(false)
-      setLaufzeit(0)
+      setAktivAuftrag(a);
+      setStartZeit(now);
+      setIstPause(false);
+      setLaufzeit(0);
 
-      localStorage.setItem("startZeit", now.toString())
-      localStorage.setItem("aktivAuftrag", JSON.stringify(a))
-
+      localStorage.setItem("startZeit", now.toString());
+      localStorage.setItem("aktivAuftrag", JSON.stringify(a));
     } catch (err) {
-      alert("Serverfehler beim Starten")
+      console.error("Serverfehler beim Starten:", err); // Fehler ausgeben, wenn der API-Aufruf scheitert
+      alert("Serverfehler beim Starten");
     }
-
-  })
+  });
 }
-
 /* ================= PAUSE ================= */
 
 async function pauseAuftrag() {
@@ -440,7 +437,7 @@ async function stopAuftrag() {
     saturday.setDate(monday.getDate() + 5)
 
     async function speichern() {
-      await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet", {
+      await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/verfuegbarkeit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -580,7 +577,7 @@ async function stopAuftrag() {
           </div>
         )}
 
-        <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-blue p-6 rounded-xl shadow">
           <h3 className="text-lg font-bold mb-4">Meine Aufträge</h3>
           {auftraege.map(a => (
             <div key={a.id} className="border p-3 mb-3 rounded-lg bg-gray-200 text-black">
