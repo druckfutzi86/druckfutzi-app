@@ -13,30 +13,44 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <body className="min-h-screen bg-gray-100 text-gray-900 antialiased">
-        
+      <body className="min-h-screen bg-[#0F172A] text-slate-100 antialiased">
+
         <div className="min-h-screen flex flex-col">
-          
+
           {/* Header */}
-          <header className="bg-white shadow-sm border-b">
-            <div className="max-w-6xl mx-auto px-6 py-4">
-              <h1 className="text-xl font-bold">
-                Druckfutzi
-              </h1>
+          <header className="bg-slate-800 border-b border-slate-700">
+            <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+              
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-green-500 flex items-center justify-center font-bold text-slate-900">
+                  D
+                </div>
+                <h1 className="text-lg font-semibold tracking-wide">
+                  Druckfutzi
+                </h1>
+              </div>
+
+              <div className="text-sm text-slate-400">
+                Fahrer App
+              </div>
+
             </div>
           </header>
 
           {/* Main Content */}
           <main className="flex-1">
-            <div className="max-w-6xl mx-auto px-6 py-8">
-              {children}
+            <div className="max-w-6xl mx-auto px-6 py-10">
+              <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-8">
+                {children}
+              </div>
             </div>
           </main>
 
           {/* Footer */}
-          <footer className="bg-white border-t">
-            <div className="max-w-6xl mx-auto px-6 py-4 text-sm text-gray-500">
-              © {new Date().getFullYear()} Druckfutzi
+          <footer className="bg-slate-800 border-t border-slate-700">
+            <div className="max-w-6xl mx-auto px-6 py-4 text-sm text-slate-500 flex justify-between">
+              <span>© {new Date().getFullYear()} Druckfutzi</span>
+              <span className="text-slate-600">Enterprise System</span>
             </div>
           </footer>
 
@@ -46,5 +60,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
