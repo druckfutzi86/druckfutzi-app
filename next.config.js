@@ -1,10 +1,9 @@
 // next.config.js
 module.exports = {
   experimental: {
-    turbopack: false,  // Deaktiviert Turbopack
+    turbopack: false, // Deaktiviert Turbopack
   },
-  webpack: (config) => {
-    // Optional: Passe die Webpack-Konfiguration an, wenn notwendig
-    return config;
+  webpack: (config, { isServer }) => {
+    return config; // Wenn du benutzerdefinierte Webpack-Konfigurationen hast, hier hinzufügen
   },
 };
