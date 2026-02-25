@@ -108,7 +108,6 @@ export default function Home() {
   /* ================= KAPAZITÄT AUTO LADEN ================= */
 
   useEffect(() => {
-<<<<<<< HEAD
 
     if (view !== "kapazitaet" || !fahrer) return
 
@@ -147,7 +146,6 @@ export default function Home() {
     ladePlan()
 
   }, [weekIndex, view, fahrer])
-=======
   if (view !== "kapazitaet" || !fahrer) return;
 
   const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000);
@@ -186,7 +184,6 @@ export default function Home() {
 
   ladePlan(); // API-Aufruf ausführen
 }, [weekIndex, view, fahrer]);
->>>>>>> 9c9550697ab283bf269c8b48f66dbc6c56238d36
 
   /* ================= LOGIN ================= */
 
