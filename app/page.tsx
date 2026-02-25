@@ -116,21 +116,57 @@ export default function Home() {
     const jahr = futureDate.getFullYear()
 
     async function ladePlan() {
-      const res = await fetch(
-        `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
-        {
-          headers: {
-            Authorization: `Bearer ${fahrer!.token}`
-          }
+  try {
+    const res = await fetch(
+      `https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`,
+      {
+        headers: {
+          Authorization: `Bearer ${fahrer!.token}`
         }
-      )
+      }
+    )
 
-      const data = await res.json()
+    const data = await res.json()
 
-      if (data && Object.keys(data).length > 0) {
-        setPlan(data)
-      } else {
-        setPlan({ mo:"",di:"",mi:"",do:"",fr:"",sa:"",so:"" })
+    // Debugging: Ausgabe der geladenen Daten
+    console.log(data);  // Überprüfe, ob es zusätzliche Felder gibt
+
+    // Entferne alle nicht benötigten Felder und setze nur die relevanten
+    const validPlan = {
+      mo: data.mo || "",
+      di: data.di || "",
+      mi: data.mi || "",
+      do: data.do || "",
+      fr: data.fr || "",
+      sa: data.sa || "",
+      so: data.so || ""
+    }
+
+    // Überprüfe die gefilterten Daten
+    console.log(validPlan); 
+
+    // Setze den bereinigten Plan
+    setPlan(validPlan)
+  } catch (error) {
+    console.error("Fehler bei der Kapazitätsabfrage:", error)
+    setPlan({ mo:"", di:"", mi:"", do:"", fr:"", sa:"", so:"" })
+  }
+}
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error("Fehler beim Laden der Kapazitäten")
+        }
+
+        if (data && Object.keys(data).length > 0) {
+          setPlan(data)
+        } else {
+          setPlan({ mo:"", di:"", mi:"", do:"", fr:"", sa:"", so:"" })
+        }
+      } catch (error) {
+        console.error("Fehler bei der Kapazitätsabfrage:", error)
+        setPlan({ mo:"", di:"", mi:"", do:"", fr:"", sa:"", so:"" })
       }
     }
 
@@ -211,22 +247,22 @@ export default function Home() {
       }
 
       const res = await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/auftrag/start", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${fahrer?.token}`
-  },
-  body: JSON.stringify({
-    auftrag_id: a.id,
-    override_grund: grund
-  })
-})
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${fahrer?.token}`
+        },
+        body: JSON.stringify({
+          auftrag_id: a.id,
+          override_grund: grund
+        })
+      })
 
-if (!res.ok) {
-  const data = await res.json()
-  alert(data.error || "Start nicht möglich")
-  return
-}
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || "Start nicht möglich")
+        return
+      }
       const now = Date.now()
       setAktivAuftrag(a)
       setStartZeit(now)
@@ -266,15 +302,15 @@ if (!res.ok) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-xl shadow w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center mb-6">Fahrer Login</h1>
+          <h1 className="text-2xl font-bold text-center mb-6 text-black">Fahrer Login</h1>
           <input type="number" placeholder="Fahrer-ID"
             value={fahrerId}
             onChange={(e) => setFahrerId(e.target.value)}
-            className="w-full mb-4 p-3 border rounded-lg" />
+            className="w-full mb-4 p-3 border rounded-lg text-black" />
           <input type="password" placeholder="PIN"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            className="w-full mb-4 p-3 border rounded-lg" />
+            className="w-full mb-4 p-3 border rounded-lg text-black" />
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
           <button onClick={login}
             disabled={loading}
@@ -325,26 +361,26 @@ if (!res.ok) {
           </p>
 
           {Object.keys(plan).map((tag) => (
-            <div key={tag} className="mb-4">
-              <label className="block text-sm font-semibold mb-1">
-                {tag.toUpperCase()}
-              </label>
+  <div key={tag} className="mb-4">
+    <label className="block text-sm font-semibold mb-1">
+      {tag.toUpperCase()}
+    </label>
 
-              <select
-                value={(plan as any)[tag]}
-                onChange={(e) =>
-                  setPlan({ ...plan, [tag]: e.target.value })
-                }
-                className={`w-full p-2 border rounded ${farbe((plan as any)[tag])}`}
-              >
-                <option value="">Bitte wählen</option>
-                <option value="Ganztag">Ganztag</option>
-                <option value="Halbtags">Halbtags</option>
-                <option value="Urlaub">Urlaub</option>
-                <option value="Frei">Frei</option>
-              </select>
-            </div>
-          ))}
+    <select
+      value={plan[tag] || ""} // Stelle sicher, dass nur die relevanten Werte gesetzt werden
+      onChange={(e) =>
+        setPlan({ ...plan, [tag]: e.target.value })
+      }
+      className={`w-full p-2 border rounded ${farbe(plan[tag])}`}
+    >
+      <option value="">Bitte wählen</option>
+      <option value="Ganztag">Ganztag</option>
+      <option value="Halbtags">Halbtags</option>
+      <option value="Urlaub">Urlaub</option>
+      <option value="Frei">Frei</option>
+    </select>
+  </div>
+))}
 
           <div className="flex justify-between mt-6">
             <button
