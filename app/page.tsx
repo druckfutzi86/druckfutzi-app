@@ -108,6 +108,7 @@ export default function Home() {
   /* ================= KAPAZITÄT AUTO LADEN ================= */
 
   useEffect(() => {
+<<<<<<< HEAD
 
     if (view !== "kapazitaet" || !fahrer) return
 
@@ -146,6 +147,46 @@ export default function Home() {
     ladePlan()
 
   }, [weekIndex, view, fahrer])
+=======
+  if (view !== "kapazitaet" || !fahrer) return;
+
+  const futureDate = new Date(Date.now() + weekIndex * 7 * 86400000);
+  const kw = getISOWeek(futureDate);
+  const jahr = futureDate.getFullYear();
+
+  async function ladePlan() {
+    try {
+      const res = await fetch(`https://druckfutzi.de/wp-json/druckfutzi/v1/kapazitaet?kw=${kw}&jahr=${jahr}`, {
+        headers: {
+          Authorization: `Bearer ${fahrer!.token}`,
+        },
+      });
+
+      // Überprüfe den Statuscode
+      if (!res.ok) {
+        const errorDetails = await res.text(); // Hole die Fehlerdetails als Text
+        throw new Error(`Fehler beim Laden der Kapazitäten: ${res.statusText} - Details: ${errorDetails}`);
+      }
+
+      // Versuche, die Antwort als JSON zu parsen
+      const data = await res.json(); // Daten nur einmal hier deklarieren
+
+      // Wenn die Daten leer sind, setze den Plan auf leere Werte
+      if (data && Object.keys(data).length > 0) {
+        setPlan(data); // Erfolgreich gefüllte Daten setzen
+      } else {
+        setPlan({ mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: "" }); // Leere Antwort behandeln
+      }
+    } catch (error) {
+      // Fehlerbehandlung: Fehler aus der API-Antwort oder Parsing
+      console.error("Fehler bei der Kapazitätsabfrage:", error);
+      setPlan({ mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: "" }); // Setze leere Plan-Werte bei Fehler
+    }
+  }
+
+  ladePlan(); // API-Aufruf ausführen
+}, [weekIndex, view, fahrer]);
+>>>>>>> 9c9550697ab283bf269c8b48f66dbc6c56238d36
 
   /* ================= LOGIN ================= */
 
@@ -334,6 +375,7 @@ export default function Home() {
           </p>
 
           {Object.keys(plan).map((tag) => (
+<<<<<<< HEAD
             <div key={tag} className="mb-4">
               <label className="block text-sm font-semibold mb-1">
                 {tag.toUpperCase()}
@@ -354,6 +396,28 @@ export default function Home() {
               </select>
             </div>
           ))}
+=======
+  <div key={tag} className="mb-4">
+    <label className="block text-sm font-semibold mb-1">
+      {tag.toUpperCase()}
+    </label>
+
+    <select
+      value={plan[tag] || ""} // Stelle sicher, dass nur die relevanten Werte gesetzt werden
+      onChange={(e) =>
+        setPlan({ ...plan, [tag]: e.target.value })
+      }
+      className={`w-full p-2 border rounded ${farbe(plan[tag])}`}
+    >
+      <option value="">Bitte wählen</option>
+      <option value="Ganztag">Ganztag</option>
+      <option value="Halbtags">Halbtags</option>
+      <option value="Urlaub">Urlaub</option>
+      <option value="Frei">Frei</option>
+    </select>
+  </div>
+))}
+>>>>>>> 9c9550697ab283bf269c8b48f66dbc6c56238d36
 
           <div className="flex justify-between mt-6">
             <button
