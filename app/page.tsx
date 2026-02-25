@@ -18,6 +18,16 @@ type Auftrag = {
   start_lng: number
 }
 
+type Plan = {
+  mo: string
+  di: string
+  mi: string
+  do: string
+  fr: string
+  sa: string
+  so: string
+}
+
 export default function Home() {
 
   /* ================= STATES ================= */
@@ -36,9 +46,18 @@ export default function Home() {
   const [view, setView] = useState<"dashboard" | "kapazitaet">("dashboard")
   const [weekIndex, setWeekIndex] = useState(0)
 
-  const [plan, setPlan] = useState({
-    mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: ""
-  })
+  const planKeys = ["mo", "di", "mi", "do", "fr", "sa", "so"] as const;
+  type PlanKey = typeof planKeys[number];  // Typ ist jetzt "mo" | "di" | "mi" | "do" | "fr" | "sa" | "so"
+
+  const [plan, setPlan] = useState<Plan>({
+    mo: "",
+    di: "",
+    mi: "",
+    do: "",
+    fr: "",
+    sa: "",
+    so: ""
+  });
 
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -342,11 +361,11 @@ export default function Home() {
               </label>
 
               <select
-                value={plan[tag] || ""} // Stelle sicher, dass nur die relevanten Werte gesetzt werden
+                value={plan[tag as keyof Plan] || ""}  // Zugriff auf das plan-Objekt mit dem richtigen Schlüssel
                 onChange={(e) =>
-                  setPlan({ ...plan, [tag]: e.target.value })
+                  setPlan({ ...plan, [tag as keyof Plan]: e.target.value })  // Typisiere den Schlüssel
                 }
-                className={`w-full p-2 border rounded ${farbe(plan[tag])}`}
+                className={`w-full p-2 border rounded ${farbe(plan[tag as keyof Plan])}`}
               >
                 <option value="">Bitte wählen</option>
                 <option value="Ganztag">Ganztag</option>
