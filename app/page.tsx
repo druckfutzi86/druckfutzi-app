@@ -375,7 +375,6 @@ export default function Home() {
           </p>
 
           {Object.keys(plan).map((tag) => (
-<<<<<<< HEAD
             <div key={tag} className="mb-4">
               <label className="block text-sm font-semibold mb-1">
                 {tag.toUpperCase()}
@@ -396,7 +395,6 @@ export default function Home() {
               </select>
             </div>
           ))}
-=======
   <div key={tag} className="mb-4">
     <label className="block text-sm font-semibold mb-1">
       {tag.toUpperCase()}
@@ -417,7 +415,6 @@ export default function Home() {
     </select>
   </div>
 ))}
->>>>>>> 9c9550697ab283bf269c8b48f66dbc6c56238d36
 
           <div className="flex justify-between mt-6">
             <button
