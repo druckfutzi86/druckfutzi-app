@@ -35,6 +35,11 @@ type Plan = {
   sa_notiz: string
   so_notiz: string
 }
+const emptyPlan = {
+  mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: "",
+  mo_notiz: "", di_notiz: "", mi_notiz: "", do_notiz: "",
+  fr_notiz: "", sa_notiz: "", so_notiz: ""
+}
 
 export default function Home() {
 
