@@ -231,8 +231,7 @@ const [plan, setPlan] = useState<Plan>(emptyPlan)
     setView("dashboard")
   }
 
-  /* ================= START ================= */
-
+ 
   /* ================= START / PAUSE / STOP (API VERSION) ================= */
 
 async function startAuftrag(a: Auftrag) {
@@ -413,8 +412,8 @@ async function stopAuftrag() {
 
   if (!fahrer) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-xl shadow w-full max-w-sm">
+      <div className="min-h-screen flex items-center justify-center bg-[#0F172A]-100">
+        <div className="bg-[#0F172A] p-8 rounded-xl shadow w-full max-w-sm">
           <h1 className="text-2xl font-bold text-center mb-6 text-black">Fahrer Login</h1>
           <input type="number" placeholder="Fahrer-ID"
             value={fahrerId}
@@ -532,7 +531,7 @@ async function stopAuftrag() {
         <div className="flex justify-between mt-8">
           <button
             onClick={() => setWeekIndex(weekIndex - 1)}
-            className="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg"
+            className="bg-red-600 hover:bg-[#0F172A]-500 px-4 py-2 rounded-lg"
           >
             ← Vorherige Woche
           </button>
