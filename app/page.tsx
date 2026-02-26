@@ -412,21 +412,21 @@ async function stopAuftrag() {
 
   if (!fahrer) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0F172A]-100">
+      <div className="min-h-screen flex items-center justify-center bg-[#0F172A]">
         <div className="bg-[#0F172A] p-8 rounded-xl shadow w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center mb-6 text-black">Fahrer Login</h1>
+          <h1 className="text-2xl font-bold text-center mb-6 text-white">Fahrer Login</h1>
           <input type="number" placeholder="Fahrer-ID"
             value={fahrerId}
             onChange={(e) => setFahrerId(e.target.value)}
-            className="w-full mb-4 p-3 border rounded-lg text-black" />
+            className="w-full mb-4 p-3 border rounded-lg text-white" />
           <input type="password" placeholder="PIN"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            className="w-full mb-4 p-3 border rounded-lg text-black" />
+            className="w-full mb-4 p-3 border rounded-lg text-white" />
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
           <button onClick={login}
             disabled={loading}
-            className="w-full bg-[#0F172A]-600 text-white py-3 rounded-lg">
+            className="w-full bg-[#0F172A] text-white py-3 rounded-lg">
             {loading ? "Prüfe..." : "Login"}
           </button>
         </div>
@@ -472,7 +472,7 @@ async function stopAuftrag() {
 
   return (
     <div className="min-h-screen p-8 bg-[#0F172A] text-white">
-      <div className="max-w-2xl mx-auto bg-[#0F172A]-800 p-8 rounded-2xl shadow-xl border border-[#0F172A]-700">
+      <div className="max-w-2xl mx-auto bg-[#0F172A] p-8 rounded-2xl shadow-xl border border-[#0F172A]">
 
         <h2 className="text-2xl font-bold mb-2">
           KW {kw} / {jahr}
@@ -500,7 +500,7 @@ async function stopAuftrag() {
                     [tag.key]: e.target.value
                   })
                 }
-                className="w-full md:w-1/2 p-3 rounded-lg bg-[#0F172A]-700 border border-[#0F172A]-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-[#0F172A] border border-[#0F172A] text-white focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">Bitte wählen</option>
                 <option value="Ganztag">Ganztag</option>
@@ -521,7 +521,7 @@ async function stopAuftrag() {
                     [`${tag.key}_notiz`]: e.target.value
                   })
                 }
-                className="w-full md:w-1/2 p-3 rounded-lg bg-[#0F172A]-700 border border-[#0F172A]-600 text-white placeholder-[#0F172A]-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-[#0F172A] border border-[#0F172A] text-white placeholder-[#0F172A] focus:outline-none focus:ring-2 focus:ring-green-500"
               />
 
             </div>
@@ -531,14 +531,14 @@ async function stopAuftrag() {
         <div className="flex justify-between mt-8">
           <button
             onClick={() => setWeekIndex(weekIndex - 1)}
-            className="bg-red-600 hover:bg-[#0F172A]-500 px-4 py-2 rounded-lg"
+            className="bg-pink-600 hover:bg-[#0F172A] px-4 py-2 rounded-lg"
           >
             ← Vorherige Woche
           </button>
 
           <button
             onClick={() => setWeekIndex(weekIndex + 1)}
-            className="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg"
+            className="bg-pink-600 hover:bg-slate-500 px-4 py-2 rounded-lg"
           >
             Nächste Woche →
           </button>
@@ -553,7 +553,7 @@ async function stopAuftrag() {
 
         <button
           onClick={() => setView("dashboard")}
-          className="w-full mt-4 text-slate-400 hover:text-white"
+          className="block mx-auto w-50 bg-red-600 hover:bg-green-500 py-3 mt-8 rounded-xl font-semibold"
         >
           Zurück
         </button>
@@ -566,14 +566,14 @@ async function stopAuftrag() {
   /* ================= DASHBOARD ================= */
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100">
+    <div className="min-h-screen p-8 bg-[#0F172A]">
       <div className="max-w-3xl mx-auto">
 
         <div className="flex justify-between mb-8">
           <div>
             <h2 className="text-xl font-bold">Willkommen {fahrer.name}</h2>
-            <p className="text-sm text-black-600">Typ: {fahrer.typ}</p>
-            <p className="text-sm text-black-600">
+            <p className="text-sm text-white">Typ: {fahrer.typ}</p>
+            <p className="text-sm text-white">
               Geleistete Stunden: {fahrer.stunden} h
             </p>
           </div>
@@ -581,13 +581,13 @@ async function stopAuftrag() {
           <div className="flex gap-2">
             <button
               onClick={() => setView("kapazitaet")}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg">
+              className="bg-green-600 text-white px-2 py-2 rounded-lg">
               Verfügbarkeit
             </button>
 
             <button
               onClick={logout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg">
+              className="bg-red-500 text-white px-2 py-2 rounded-lg">
               Logout
             </button>
           </div>
@@ -628,10 +628,10 @@ async function stopAuftrag() {
           </div>
         )}
 
-        <div className="bg-[#0F172A] p-6 rounded-xl shadow">
+        <div className="bg-red p-6 rounded-xl shadow">
           <h3 className="text-lg font-bold mb-4">Meine Aufträge</h3>
           {auftraege.map(a => (
-            <div key={a.id} className="border p-3 mb-3 rounded-lg bg-gray-200 text-black">
+            <div key={a.id} className="border p-3 mb-3 rounded-lg bg-blue-200 text-white">
   <p><strong>{a.titel}</strong></p>
   <p>{a.datum}</p>
   {!aktivAuftrag && (
