@@ -37,7 +37,7 @@ export default function RootLayout({
             </div>
           </header>
 
-          {/* Main Content */}
+          {/* Main */}
           <main className="flex-1">
             <div className="max-w-6xl mx-auto px-6 py-10">
               <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-8">

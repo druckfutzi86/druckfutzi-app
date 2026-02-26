@@ -1,24 +1,4 @@
-import "./globals.css"
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Druckfutzi App",
-  description: "Fahrer Dashboard",
-}
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="de">
-      <body className="min-h-screen bg-[#0F172A] text-slate-100 antialiased">
-
-        <div className="min-h-screen flex flex-col">
-
-          {/* Header */}
-          <header className="bg-slate-800 border-b border-slate-700">"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 
@@ -74,18 +54,26 @@ export default function Home() {
   const [view, setView] = useState<"dashboard" | "kapazitaet">("dashboard")
   const [weekIndex, setWeekIndex] = useState(0)
 
-  const planKeys = ["mo", "di", "mi", "do", "fr", "sa", "so"] as const;
-  type PlanKey = typeof planKeys[number];  // Typ ist jetzt "mo" | "di" | "mi" | "do" | "fr" | "sa" | "so"
+  
+const emptyPlan: Plan = {
+  mo: "",
+  di: "",
+  mi: "",
+  do: "",
+  fr: "",
+  sa: "",
+  so: "",
 
-  const [plan, setPlan] = useState<Plan>({
-    mo: "",
-    di: "",
-    mi: "",
-    do: "",
-    fr: "",
-    sa: "",
-    so: ""
-  });
+  mo_notiz: "",
+  di_notiz: "",
+  mi_notiz: "",
+  do_notiz: "",
+  fr_notiz: "",
+  sa_notiz: "",
+  so_notiz: ""
+}
+
+const [plan, setPlan] = useState<Plan>(emptyPlan)
 
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -142,15 +130,7 @@ export default function Home() {
     )
   }
 
-  const farbe = (wert: string) => {
-    switch (wert) {
-      case "Ganztag": return "bg-green-100 border-green-400"
-      case "Halbtags": return "bg-yellow-100 border-yellow-400"
-      case "Urlaub": return "bg-red-100 border-red-400"
-      case "Frei": return "bg-gray-100 border-gray-400"
-      default: return ""
-    }
-  }
+  
 
   /* ================= KAPAZITÄT AUTO LADEN ================= */
 
@@ -184,11 +164,11 @@ export default function Home() {
         if (data && Object.keys(data).length > 0) {
           setPlan(data); // Erfolgreich gefüllte Daten setzen
         } else {
-          setPlan({ mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: "" }); // Leere Antwort behandeln
+          setPlan(emptyPlan);
         }
       } catch (error) {
         console.error("Fehler bei der Kapazitätsabfrage:", error);
-        setPlan({ mo: "", di: "", mi: "", do: "", fr: "", sa: "", so: "" });
+        setPlan(emptyPlan);
       }
     }
 
@@ -675,28 +655,3 @@ async function stopAuftrag() {
               </div>
 
             </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="flex-1">
-            <div className="max-w-6xl mx-auto px-6 py-10">
-              <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-8">
-                {children}
-              </div>
-            </div>
-          </main>
-
-          {/* Footer */}
-          <footer className="bg-slate-800 border-t border-slate-700">
-            <div className="max-w-6xl mx-auto px-6 py-4 text-sm text-slate-500 flex justify-between">
-              <span>© {new Date().getFullYear()} Druckfutzi</span>
-              <span className="text-slate-600">Enterprise System</span>
-            </div>
-          </footer>
-
-        </div>
-
-      </body>
-    </html>
-  )
-}
