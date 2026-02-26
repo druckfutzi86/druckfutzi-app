@@ -501,7 +501,7 @@ async function stopAuftrag() {
                     [tag.key]: e.target.value
                   })
                 }
-                className="w-full md:w-1/2 p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-slate-700 border border-blue-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">Bitte wählen</option>
                 <option value="Ganztag">Ganztag</option>
@@ -522,7 +522,7 @@ async function stopAuftrag() {
                     [`${tag.key}_notiz`]: e.target.value
                   })
                 }
-                className="w-full md:w-1/2 p-3 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-blue-700 border border-blue-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
 
             </div>
