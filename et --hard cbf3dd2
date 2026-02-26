@@ -1,0 +1,78 @@
+[33m02edece[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m fix mobile
+[33m5948d27[m fix mobile
+[33m3c1ccf4[m fix mobile
+[33m1cd5ba8[m fix mobile
+[33mf89c346[m fix mobile
+[33m0c7a9fd[m fix mobile
+[33m44ecee8[m fix mobile
+[33m8927272[m fix mobile
+[33mf621b37[m fix mobile
+[33mc2eb6aa[m fix mobile
+[33m0d99e55[m fix mobile
+[33md9465cf[m fix mobile
+[33m75e9264[m fix mobile4
+[33ma85e92d[m fix mobile4
+[33m7cbb762[m mobile fix
+[33m50048e1[m fix mobile4
+[33m6292332[m mobile fix2
+[33m7ae323f[m fix mobile3
+[33md29e75c[m mobile fix1
+[33me7711c9[m fix mobile2
+[33m7e3d119[m mobile fix
+[33m670ad3a[m fix mobile1
+[33m633638c[m fix layout mobile fix
+[33m494388e[m fix mobile
+[33mcbf3dd2[m fix layout 2
+[33m79719b0[m fix layout mobile
+[33mb28d416[m fix layout 1
+[33mfce1472[m fix layout
+[33m6a99240[m fix api route to verfuegbarkeit
+[33m51e7085[m fix api route to verfuegbarkeit
+[33m2ee1ec0[m fix api route to verfuegbarkeit
+[33mffe766b[m fix api route to verfuegbarkeit
+[33m30556e1[m Farbanpassungen
+[33m8c27554[m START / PAUSE / STOP (API VERSION)
+[33m5d87c33[m Switch to Next.js 15 and fix configuration
+[33m1db24c4[m Initial commit
+[33m8b4223f[m fix
+[33m01b675f[m fix
+[33m03406de[m fix
+[33m97978f6[m fix
+[33md1dab3a[m fix
+[33m6387554[m Fix package-lock.json
+[33m07ed191[m Konflikte in page.tsx behoben
+[33m6815543[m Fix package-lock.json
+[33mdfc4734[m Konflikte in package.json behoben
+[33mbf47805[m Konflikte in package.json behoben
+[33m8102eb1[m Konflikte in package.json behoben
+[33me9e2fd2[m Merge Konflikte in package.json und package-lock.json behoben
+[33m03514de[m Update App mit neuen API-Routen und Token-Logik
+[33m49ae7a9[m Initial commit from Create Next App
+[33m9c95506[m Restore package.json and install dependencies
+[33m9c779f6[m Restore package.json and install dependencies
+[33m7256052[m Restore package.json and install dependencies
+[33mebe2e42[m Restore package.json and install dependencies
+[33m145b5d3[m Restore package.json and install dependencies
+[33mfc91640[m Restore package.json and install dependencies
+[33m07731a4[m Restore package.json and install dependencies
+[33m696c628[m ändereung ladeplan
+[33m0d84893[m Nur 1 aktiver Auftrag + Fix Start Endpoint
+[33mf50b556[m Nur 1 aktiver Auftrag + Fix Start Endpoint
+[33m8a1500f[m Fix TS null error capacity save
+[33me091edb[m Fix TS null check for fahrer
+[33mc0a90f2[m Auto load capacity week
+[33m1ad93ed[m Final clean pause implementation
+[33mcd26b32[m Fix kapazitaet structure + hooks
+[33m77e2c3a[m Auto load availability + color coding
+[33mf606f03[m Update Dashboard
+[33m67290b7[m Fix TS null error
+[33mb1e8dc3[m Fix TS null error
+[33mb653fbe[m Update Dashboard
+[33m8955ad9[m Update Dashboard
+[33mdcae8f3[m Update Dashboard
+[33mee10c9b[m Update Dashboard
+[33mc02dd99[m Update Dashboard
+[33mbe43074[m Update Dashboard
+[33md970631[m Update Dashboard
+[33mcc07a9d[m Update App
+[33md37622b[m Initial commit - Druckfutzi App
