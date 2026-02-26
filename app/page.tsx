@@ -427,7 +427,7 @@ async function stopAuftrag() {
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
           <button onClick={login}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg">
+            className="w-full bg-[#0F172A]-600 text-white py-3 rounded-lg">
             {loading ? "Prüfe..." : "Login"}
           </button>
         </div>
@@ -473,7 +473,7 @@ async function stopAuftrag() {
 
   return (
     <div className="min-h-screen p-8 bg-[#0F172A] text-white">
-      <div className="max-w-2xl mx-auto bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-700">
+      <div className="max-w-2xl mx-auto bg-[#0F172A]-800 p-8 rounded-2xl shadow-xl border border-[#0F172A]-700">
 
         <h2 className="text-2xl font-bold mb-2">
           KW {kw} / {jahr}
@@ -501,7 +501,7 @@ async function stopAuftrag() {
                     [tag.key]: e.target.value
                   })
                 }
-                className="w-full md:w-1/2 p-3 rounded-lg bg-slate-700 border border-blue-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-[#0F172A]-700 border border-[#0F172A]-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">Bitte wählen</option>
                 <option value="Ganztag">Ganztag</option>
@@ -522,7 +522,7 @@ async function stopAuftrag() {
                     [`${tag.key}_notiz`]: e.target.value
                   })
                 }
-                className="w-full md:w-1/2 p-3 rounded-lg bg-blue-700 border border-blue-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-[#0F172A]-700 border border-[#0F172A]-600 text-white placeholder-[#0F172A]-400 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
 
             </div>
@@ -616,7 +616,7 @@ async function stopAuftrag() {
 
               {istPause &&
                 <button onClick={fortsetzenAuftrag}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                  className="bg-slate-600 text-white px-4 py-2 rounded-lg">
                   Fortsetzen
                 </button>
               }
@@ -629,7 +629,7 @@ async function stopAuftrag() {
           </div>
         )}
 
-        <div className="bg-blue p-6 rounded-xl shadow">
+        <div className="bg-[#0F172A] p-6 rounded-xl shadow">
           <h3 className="text-lg font-bold mb-4">Meine Aufträge</h3>
           {auftraege.map(a => (
             <div key={a.id} className="border p-3 mb-3 rounded-lg bg-gray-200 text-black">
@@ -638,7 +638,7 @@ async function stopAuftrag() {
   {!aktivAuftrag && (
     <button
       onClick={() => startAuftrag(a)}
-      className="bg-blue-600 text-white px-4 py-2 mt-2 rounded-lg">
+      className="bg-slate-600 text-white px-4 py-2 mt-2 rounded-lg">
       Auftrag starten
     </button>
   )}
