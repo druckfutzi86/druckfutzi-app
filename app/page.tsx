@@ -446,8 +446,8 @@ async function stopAuftrag() {
   const monday = new Date(futureDate)
   monday.setDate(futureDate.getDate() - ((futureDate.getDay() + 6) % 7))
 
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
+  const saturday = new Date(monday)
+  saturday.setDate(monday.getDate() + 5)
 
   async function speichern() {
     await fetch("https://druckfutzi.de/wp-json/druckfutzi/v1/verfuegbarkeit", {
@@ -458,12 +458,21 @@ async function stopAuftrag() {
       },
       body: JSON.stringify({ kw, jahr, plan })
     })
-
     alert("Gespeichert ✔")
   }
 
+  const tage = [
+    { key: "mo", label: "Montag" },
+    { key: "di", label: "Dienstag" },
+    { key: "mi", label: "Mittwoch" },
+    { key: "do", label: "Donnerstag" },
+    { key: "fr", label: "Freitag" },
+    { key: "sa", label: "Samstag" },
+    { key: "so", label: "Sonntag" },
+  ]
+
   return (
-    <div className="min-h-screen p-6 bg-[#0F172A] text-white">
+    <div className="min-h-screen p-8 bg-[#0F172A] text-white">
       <div className="max-w-2xl mx-auto bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-700">
 
         <h2 className="text-2xl font-bold mb-2">
@@ -471,27 +480,19 @@ async function stopAuftrag() {
         </h2>
 
         <p className="text-slate-400 mb-8">
-          {monday.toLocaleDateString("de-DE")} – {sunday.toLocaleDateString("de-DE")}
+          {monday.toLocaleDateString("de-DE")} – {saturday.toLocaleDateString("de-DE")}
         </p>
 
-        {[
-          { key: "mo", label: "Montag" },
-          { key: "di", label: "Dienstag" },
-          { key: "mi", label: "Mittwoch" },
-          { key: "do", label: "Donnerstag" },
-          { key: "fr", label: "Freitag" },
-          { key: "sa", label: "Samstag" },
-          { key: "so", label: "Sonntag" },
-        ].map((tag) => (
+        {tage.map((tag) => (
           <div key={tag.key} className="mb-6">
 
-            <div className="text-sm font-semibold mb-2 text-slate-300">
+            <label className="block font-semibold mb-2">
               {tag.label}
-            </div>
+            </label>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
 
-              {/* STATUS DROPDOWN */}
+              {/* Dropdown */}
               <select
                 value={plan[tag.key as keyof Plan] as string}
                 onChange={(e) =>
@@ -500,7 +501,7 @@ async function stopAuftrag() {
                     [tag.key]: e.target.value
                   })
                 }
-                className="w-full p-3 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">Bitte wählen</option>
                 <option value="Ganztag">Ganztag</option>
@@ -510,7 +511,7 @@ async function stopAuftrag() {
                 <option value="Frei">Frei</option>
               </select>
 
-              {/* NOTIZ TEXTFELD */}
+              {/* Notizfeld */}
               <input
                 type="text"
                 placeholder="Notiz eingeben..."
@@ -521,44 +522,39 @@ async function stopAuftrag() {
                     [`${tag.key}_notiz`]: e.target.value
                   })
                 }
-                className="w-full p-3 rounded-xl bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full md:w-1/2 p-3 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
 
             </div>
-
           </div>
         ))}
 
-        {/* WEEK NAVIGATION */}
-        <div className="flex justify-between mt-10">
-
+        <div className="flex justify-between mt-8">
           <button
             onClick={() => setWeekIndex(weekIndex - 1)}
-            className="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-500 transition"
+            className="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg"
           >
-            ◀ Vorherige Woche
+            ← Vorherige Woche
           </button>
 
           <button
             onClick={() => setWeekIndex(weekIndex + 1)}
-            className="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-500 transition"
+            className="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg"
           >
-            Nächste Woche ▶
+            Nächste Woche →
           </button>
-
         </div>
 
-        {/* SAVE BUTTON */}
         <button
           onClick={speichern}
-          className="w-full mt-8 bg-green-600 hover:bg-green-500 transition py-3 rounded-xl font-semibold"
+          className="w-full bg-green-600 hover:bg-green-500 py-3 mt-8 rounded-xl font-semibold"
         >
           Speichern
         </button>
 
         <button
           onClick={() => setView("dashboard")}
-          className="w-full mt-4 text-slate-400 hover:text-white transition"
+          className="w-full mt-4 text-slate-400 hover:text-white"
         >
           Zurück
         </button>
