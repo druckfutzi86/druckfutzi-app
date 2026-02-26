@@ -573,8 +573,8 @@ async function stopAuftrag() {
         <div className="flex justify-between mb-8">
           <div>
             <h2 className="text-xl font-bold">Willkommen {fahrer.name}</h2>
-            <p className="text-sm text-gray-600">Typ: {fahrer.typ}</p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-black-600">Typ: {fahrer.typ}</p>
+            <p className="text-sm text-black-600">
               Geleistete Stunden: {fahrer.stunden} h
             </p>
           </div>
